@@ -106,3 +106,6 @@ venv.bak/
 # MacOS directories
 *.DS_Store
 .Rproj.user
+
+# Intellij directory
+*.idea
