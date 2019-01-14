@@ -30,15 +30,15 @@ proc ttest data = class;
 	var  score; /*variable for the t-test*/ 
 run; 
 
-   proc power;
-      twosamplemeans 
-		 test=diff
-         meandiff = 5 to 25 by 5 /* vary the mean difference*/
-         stddev = 5 to 15 by 5   /* vary the standard deviation of the groups*/
-         ntotal = . /*find the n */
-         power = 0.9;  /*we want a 90% probability to find a differences
-		 			     if the above is true*/
-	  run;
+proc power;
+  twosamplemeans 
+	 test=diff
+     meandiff = 5 to 25 by 5 /* vary the mean difference*/
+     stddev = 5 to 15 by 5   /* vary the standard deviation of the groups*/
+     ntotal = . /*find the n */
+     power = 0.9;  /*we want a 90% probability to find a differences
+	 			     if the above is true*/
+  run;
 
  proc power;
       twosamplemeans 
