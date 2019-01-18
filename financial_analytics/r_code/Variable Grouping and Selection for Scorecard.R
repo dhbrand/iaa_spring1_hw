@@ -12,7 +12,7 @@ library(smbinning)
 library(dplyr)
 
 # Load Data From CSV File #
-accepts <- read.csv(file = "C:/Users/adlabarr/Documents/Courses/IAA/Financial Analytics/Data/accepts.csv", header = TRUE)
+accepts <- read.csv(file = "financial_analytics/data/accepts.csv", header = TRUE)
 
 # Understand Target Variable #
 table(accepts$bad)
