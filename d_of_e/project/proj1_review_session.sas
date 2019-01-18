@@ -49,13 +49,13 @@ n = 1
    1 = 0.035 because its between raleigh and durham
    2 = 0.02 because its still in the raleigh bubble
    3 = 0.04 because its in most central location in raleigh
-   4 = 0.02 because its still between durham and chapel hill
+   4 = 0.025 because its still between durham and chapel hill    *****************************
    5 = 0.01 because its on the far side of raleigh from durham and chapel hill
    
    Price 
  $15  1 =  0.01 might be see as low compared to other offerings in the area
  $20  2 =  0.00 middle pricing probably gives a neutral effect
- $25  3 =  0.00 middle pricing probably gives a neutral effect
+ $25  3 =  0.005 middle pricing probably gives a neutral effect         ***********************************
  $30  4 = -0.01 the highest price is most likely a deterant
    
  Experience

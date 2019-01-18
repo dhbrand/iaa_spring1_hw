@@ -1,7 +1,7 @@
 /* Creates the experiment grid - 5 by 4 by 3 by 4 for 240 unique combinations */
 data parkexp(keep=L P E O RR);
-	array location {5} (0.035 0.02 0.04 0.02 0.01);
-	array price {4} (0.01 0 0 -0.01);
+	array location {5} (0.035 0.02 0.04 0.025 0.01);
+	array price {4} (0.01 0 -0.005 -0.01);
 	array experience {3} (0.03 0.04 0);
 	array other {4} (0 0.025 0.005 0.03);
 	do L = 1 to 5;
