@@ -55,7 +55,7 @@ n = 1
    Price 
  $15  1 =  0.01 might be see as low compared to other offerings in the area
  $20  2 =  0.00 middle pricing probably gives a neutral effect
- $25  3 =  0.005 middle pricing probably gives a neutral effect         ***********************************
+ $25  3 = -0.005 middle pricing probably gives a neutral effect         ***********************************
  $30  4 = -0.01 the highest price is most likely a deterant
    
  Experience
