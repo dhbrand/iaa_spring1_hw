@@ -1,10 +1,14 @@
 /* Creates the experiment grid - 5 by 4 by 3 by 4 for 240 unique combinations */
-data parkexp;
+data parkexp(keep=L P E O RR);
+	array location {5} (0.035 0.02 0.04 0.02 0.01);
+	array price {4} (0.01 0 0 -0.01);
+	array experience {3} (0.03 0.04 0);
+	array other {4} (0 0.025 0.005 0.03);
 	do L = 1 to 5;
 		do P = 1 to 4;
 			do E = 1 to 3;
 				do O = 1 to 4;
-					RR + 1;       *change this to equation (or maybe if else tree);
+					RR = location[L] + price[P] + experience[E] + other[O];      
 					output;
 				end;
 			end;
@@ -22,7 +26,7 @@ proc glmpower data=parkexp;
 	contrast 'location 1 VS. 4' L 1 0 0 -1 0;
 	contrast 'location 1 VS. 5' L 1 0 0 0 -1;
  	contrast 'location 2 VS. 3' L 0 1 -1 0 0;
-	contrast 'location 2 VS. 4' L 0 1 0 -1 0;
+	contrast 'location 2 VS. 4' L 0 1 0 -1 0;    *something about this line is resulting in invalid input;
 	contrast 'location 2 VS. 5' L 0 1 0 0 -1;
 	contrast 'location 3 VS. 4' L 0 0 1 -1 0;
 	contrast 'location 3 VS. 5' L 0 0 1 0 -1;
@@ -32,7 +36,7 @@ proc glmpower data=parkexp;
 	contrast 'price 1 VS. 2' P 1 -1 0 0;
 	contrast 'price 1 VS. 3' P 1 0 -1 0;
 	contrast 'price 1 VS. 4' P 1 0 0 -1;
-	contrast 'price 2 VS. 3' P 0 1 -1 0;
+	contrast 'price 2 VS. 3' P 0 1 -1 0;         *something about this line is resulting in invalid input;
 	contrast 'price 2 VS. 4' P 0 1 0 -1;
 	contrast 'price 3 VS. 4' P 0 0 1 -1;
 
@@ -50,10 +54,10 @@ proc glmpower data=parkexp;
 	contrast 'other 3 VS. 4' O 0 0 1 -1;
 
 	power
-		alpha= 0.0125 0.002 /* (0.05 / 4 tests), 4 might be wrong here - could be 25 (0.002) */
+		alpha= 0.0125 0.002 /*(0.05 / 4 tests), 4 might be wrong here - could be 25 (0.002) */
 		power= 0.80
 		ntotal=.
-		stddev= 0.099499;
+		stddev= 0.099499;  * 1% = p,  sqrt(p(1-p);
 run;
 
 /* This section calculates Euclidean distance for each person to 
