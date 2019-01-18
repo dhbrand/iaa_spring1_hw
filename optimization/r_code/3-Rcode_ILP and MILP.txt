@@ -1,0 +1,85 @@
+###Capital budget example
+###Marr corporation
+library(lpSolve)
+f.names=c('p1','p2','p3','p4','p5')
+f.obj=c(10,17,16,8,14)
+f.con=matrix(c(48,96,80,32,64),nrow=1)
+f.dir=("<=")
+f.rhs = 160
+lp.model=lp (direction="max", f.obj, f.con, f.dir, f.rhs, all.bin=T)
+lp.model$status
+names(lp.model$solution)=f.names
+lp.model$solution
+lp.model$objval
+
+sum(lp.model$solution*f.con)
+
+
+
+
+####Set covering example
+###Districts
+f.names=c('s1','s2','s3','s4','s5', 's6','s7')
+f.obj=c(1,1,1,1,1,1,1)
+f.con=matrix(c(0,1,0,1,0,0,1,1,0,0,0,0,1,1,0,1,0,0,0,1,1,0,1,1,0,1,1,0,1,0,1,0,1,0,0,1,0,0,1,0,1,0,1,0,0,0,0,0,1,0,0,1,1,1,0,0,1,0,0,0,1,0,0),nrow=9,byrow=T)
+f.dir=c(">=",">=",">=",">=",">=",">=",">=",">=",">=")
+f.rhs = rep(1,9)
+lp.model=lp (direction="min", f.obj, f.con, f.dir, f.rhs, all.bin=T,num.bin.solns=100)  ##num.bin.solns finds all possible solutions
+lp.model$status
+numcol=length(f.obj)
+numsol=lp.model$num.bin.solns  ####This is getting all solutions
+solution=matrix(head(lp.model$solution,numcol*numsol),nrow=numsol,byrow=T)  ###making it look nice in the output
+colnames(solution)=f.names
+solution
+
+
+
+#####Marr corporation example again with logical restrictions
+f.names=c('p1','p2','p3','p4','p5')
+f.obj=c(10,17,16,8,14)
+f.con=matrix(c(48,96,80,32,64,0,1,0,0,1,1,1,1,1,1,0,0,0,1,1,0,0,1,0,-1),nrow=5, byrow=T)
+f.dir=c("<=",">=","=","<=",">=")
+f.rhs = c(160,1,2,1,0)
+lp.model=lp (direction="max", f.obj, f.con, f.dir, f.rhs, all.bin=T)
+lp.model$status
+names(lp.model$solution)=f.names
+lp.model$solution
+lp.model$objval
+
+
+####Fixed cost example
+f.names=c('x1','x2','x3','y1','y2','y3')
+f.obj=c(1.2,1.8,2.2,-60,-200,-100)
+f.con=matrix(c(3,4,8,0,0,0,3,5,6,0,0,0,2,3,9,0,0,0,1,0,0,-400,0,0,0,1,0,0,-300,0,0,0,1,0,0,-50),nrow=6, byrow=T)
+f.dir=c("<=","<=","<=","<=","<=","<=")
+f.rhs = c(2000,2000,2000,0,0,0)
+lp.model=lp (direction="max", f.obj, f.con, f.dir, f.rhs, binary.vec=c(4,5,6))  ###since this is mixed, need to specify which ones are binary
+lp.model$status
+names(lp.model$solution)=f.names
+lp.model$solution
+lp.model$objval
+
+
+####Facility example
+cost=matrix(c(0,47,32,22,42.5,27,23,30,36.5,29.5,32,79.5,0,39,12.5,10.5,50,63,13.5,17,21,42,39,0,51.5,31.5,40.5,24,47.5,26,42.5,91,12.5,51.5,0,23,58,72,10,31,23,49,50,40.5,58,49,0,32.5,50,52,36.5,83.5,13.5,47.5,10,24,50,66.5,0,32), nrow=6,byrow=T)
+capacity=c(16000, 20000, 10000,10000, 12000, 12000)
+demand=c(3200, 2500, 6800, 4000, 9600, 3500, 5000, 1800, 7400, 2700)
+fixed.cost=c(140000, 150000, 100000, 110000, 125000, 120000)
+f.obj=c(as.numeric(t(cost)),fixed.cost)
+f.con=matrix(0,nrow=16,ncol=66)  ####doing a do loop to create the constraint matrix
+for (i in 1:6)
+{f.con[i,]=c(rep(0,10*(i-1)),rep(1,10),rep(0,10*(6-i)),rep(0,i-1),-capacity[i],rep(0,6-i))
+}
+for (j in 1:10)
+{for (i in 1:6)
+{f.con[(j+6),(10*(i-1)+j)] = 1
+}}
+f.dir=c(rep('<=',6),rep('=',10))
+f.rhs=c(rep(0,6),demand)
+lp.model=lp (direction="min", f.obj, f.con, f.dir, f.rhs, binary.vec=c(61,62,63,64,65,66))
+
+x.solution=matrix(lp.model$solution[1:60],nrow=6,byrow=T)
+y.solution=lp.model$solution[61:66]
+lp.model$status
+x.solution
+y.solution

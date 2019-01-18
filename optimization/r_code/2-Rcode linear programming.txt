@@ -1,0 +1,61 @@
+
+library(lpSolve)
+f.obj=c(4,5,3,7,6)
+f.con=matrix(c(10,20,10,30,20,5,7,4,9,2,1,4,10,2,1,500,450,160,300,500),nrow=4,byrow=T)
+f.dir=c(">=",">=",">=",">=")
+f.rhs = c(20,10,15,600)
+
+lp.model=lp (direction="min", f.obj, f.con, f.dir, f.rhs,compute.sens = 1)
+lp.model$status
+f.names=c('Seeds','Raisins','Flakes', 'Pecans','Walnuts')
+names(lp.model$solution)=f.names
+lp.model$solution
+lp.model$objval
+
+
+####Illustration of shadow price
+f.names=c('Chairs','Desks','Tables')
+f.obj=c(15,24,18)
+f.con=matrix(c(4,6,2,3,5,7,3,2,4,1,0,0,0,1,0,0,0,1),nrow=6,byrow=T)
+f.dir=c("<=","<=","<=","<=","<=","<=")
+f.rhs = c(1850,2400,1500,360,300,100)
+lp.model=lp (direction="max", f.obj, f.con, f.dir, f.rhs,compute.sens = 1)
+lp.model$objval
+
+###Increase fabrication by 1 hour
+f.rhs = c(1851,2400,1500,360,300,100)
+lp.model=lp (direction="max", f.obj, f.con, f.dir, f.rhs,compute.sens = 1)
+lp.model$objval
+
+####Now increase by two hours
+f.rhs = c(1852,2400,1500,360,300,100)
+lp.model=lp (direction="max", f.obj, f.con, f.dir, f.rhs,compute.sens = 1)
+lp.model$objval
+
+###Now move fabrication back to normal and increase a nonbinding constraint
+f.rhs = c(1850,2401,1500,360,300,100)
+lp.model=lp (direction="max", f.obj, f.con, f.dir, f.rhs,compute.sens = 1)
+lp.model$objval
+
+
+###Get shadow price/reduced cost
+f.rhs = c(1850,2400,1500,360,300,100)
+lp.model=lp (direction="max", f.obj, f.con, f.dir, f.rhs,compute.sens = 1)
+lp.model$duals
+
+
+
+##Blending Model
+f.obj=c(0.5,0.6,0.7)
+f.con=matrix(c(-3,-18,7,-1,4,2,1,1,1,1,0,0,0,1,0,0,0,1),nrow=6,byrow=T)
+f.dir=c('>=','>=','=','<=','<=','<=')
+f.rhs=c(0,0,4000000,1500000,1200000,2000000)
+lp.model=lp (direction="min", f.obj, f.con, f.dir, f.rhs,compute.sens = 1)
+lp.model$status
+f.names=c('Brazilian','Colombian','Peruvian')
+names(lp.model$solution)=f.names
+lp.model$solution
+lp.model$objval
+lp.model$duals
+
+

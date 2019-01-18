@@ -109,3 +109,6 @@ venv.bak/
 
 # Intellij directory
 *.idea
+
+# Office Temp Files
+~$*
