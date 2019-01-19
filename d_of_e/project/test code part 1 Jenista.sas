@@ -120,7 +120,7 @@ data parkexp2(keep=block L P E O );
 	end;
 run;
 
-data final(keep=ID L P E O);
+data doe.final(keep=ID L P E O);
 	merge samplestrata parkexp2;
 	by block;
 run;
