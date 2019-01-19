@@ -1,4 +1,4 @@
-/* Creates the experiment grid - 5 by 4 by 3 by 4 for 240 unique combinations */
+/* Creates the experiment grid - 5 by 4 by 2 by 3 for 120 unique combinations */
 data parkexp(keep=L P E O RR);
 	array location {5} (0.035 0.02 0.04 0.025 0.01);
 	array price {4} (0.01 0 -0.005 -0.01);
@@ -18,7 +18,7 @@ run;
 
 proc glmpower data=parkexp;
 	class L P E O;
-	model RR = L P E O P*E P*O; 
+	model RR = L P E O; 
 
 	* 5 locations creates 10 comparisons;
 	contrast 'location 1 VS. 2' L 1 -1 0 0 0; 
@@ -54,11 +54,11 @@ proc glmpower data=parkexp;
 	*contrast 'other 3 VS. 4' O 0 0 1 -1;
 
 	* Interactions effects of interest;
-	contrast 'price vs experience' P 1 0 0 -1 P*E 0.5 0.5 0 0 0 0 -0.5 -0.5;
-	contrast 'price vs other' P 1 0 0 -1 P*O 0.5 0 0.5 0 0 0 0 0 0 -0.5 0 -0.5;
+	*contrast 'price vs experience' P 1 0 0 -1 P*E 0.5 0.5 0 0 0 0 -0.5 -0.5;
+	*contrast 'price vs other' P 1 0 0 -1 P*O 0.5 0 0.5 0 0 0 0 0 0 -0.5 0 -0.5;
 
 	power
-		alpha= 0.002632 /* 0.05 divided by 19 */
+		alpha= 0.002941 /* 0.05 divided by 17 */
 		power= 0.80
 		ntotal=.
 		stddev= 0.099499;  * 1% = p,  sqrt(p(1-p);
@@ -82,9 +82,9 @@ data rduch_wj(keep=ID block);
 	mind = min(d1m, d2m, d3m, d4m, d5m);
 
 	/* assign blocks, number of blocks to use and the cutoffs need to be determined */
-	if mind < 2 then block = 1;
-	else if mind < 4 then block = 2;
-	else if mind < 8 then block = 3;
+	if mind < 4 then block = 1;
+	else if mind < 8 then block = 2;
+	else if mind < 12 then block = 3;
 	else block = 4;
 run;
 
@@ -99,14 +99,14 @@ proc sort data=rduch_wj;
 run;
 
 proc surveyselect data=rduch_wj
-      method=srs n=1320
+      method=srs n=1680
       seed=1953 out=SampleStrata;
    strata block;
 run;
 
 data parkexp2(keep=block L P E O );
 	do block = 1 to 4;
-		do i = 1 to 11;  * # of replicants;
+		do i = 1 to 14;  * # of replicates;
 			do L = 1 to 5;
 				do P = 1 to 4;
 					do E = 1 to 2;         
