@@ -11,7 +11,7 @@ data parkexp(keep=L P E O RR);
 					RR = location[L] + price[P] + experience[E] + other[O];      
 					output;
 				end;
-			end;
+			end;      
 		end;
 	end;
 run;
