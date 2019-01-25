@@ -13,7 +13,7 @@ library(dplyr)
 library(stringr)
 
 # Load Data From CSV File #
-accepts <- read.csv(file = "C:/Users/adlabarr/Documents/Courses/IAA/Financial Analytics/Data/accepts.csv", header = TRUE)
+accepts <- read.csv(file = "financial_analytics/data/accepts.csv", header = TRUE)
 
 # Understand Target Variable #
 table(accepts$bad)
@@ -23,7 +23,7 @@ table(accepts$good)
 
 # Create Training and Validation #
 set.seed(12345)
-train_id <- sample(seq_len(nrow(accepts)), size = floor(0.75*nrow(accepts)))
+train_id <- sample(seq_len(nrow(accepts)), size = floor(0.75 * nrow(accepts)))
 
 train <- accepts[train_id, ]
 test <- accepts[-train_id, ]
@@ -36,25 +36,25 @@ num_names <- names(train)[sapply(train, is.numeric)] # Gathering the names of nu
 
 result_all_sig <- list() # Creating empty list to store all results #
 
-for(i in 1:length(num_names)){
+for (i in 1:length(num_names)) {
   check_res <- smbinning(df = train, y = "good", x = num_names[i])
-  
-  if(check_res == "Uniques values < 5") {
+
+  if (check_res == "Uniques values < 5") {
     next
   }
-  else if(check_res == "No significant splits") {
+  else if (check_res == "No significant splits") {
     next
   }
-  else if(check_res$iv < 0.1) {
+  else if (check_res$iv < 0.1) {
     next
   }
   else {
-  result_all_sig[[num_names[i]]] <- check_res
+    result_all_sig[[num_names[i]]] <- check_res
   }
 }
 
 # Generating Variables of Bins and WOE Values #
-for(i in 1:length(result_all_sig)) {
+for (i in 1:length(result_all_sig)) {
   train <- smbinning.gen(df = train, ivout = result_all_sig[[i]], chrname = paste(result_all_sig[[i]]$x, "_bin", sep = ""))
 }
 
@@ -64,8 +64,8 @@ for (j in 1:length(result_all_sig)) {
     bin <- substr(train[[bin_name]][i], 2, 2)
 
     woe_name <- paste(result_all_sig[[j]]$x, "_WOE", sep = "")
-    
-    if(bin == 0) {
+
+    if (bin == 0) {
       bin <- dim(result_all_sig[[j]]$ivtable)[1] - 1
       train[[woe_name]][i] <- result_all_sig[[j]]$ivtable[bin, "WoE"]
     } else {
@@ -75,15 +75,17 @@ for (j in 1:length(result_all_sig)) {
 }
 
 # Build Initial Logistic Regression #
-initial_score <- glm(data = train, bad ~ tot_derog_WOE + 
-                                         tot_tr_WOE + 
-                                         age_oldest_tr_WOE + 
-                                         tot_rev_line_WOE +
-                                         rev_util_WOE +
-                                         bureau_score_WOE +
-                                         down_pyt_WOE +
-                                         ltv_WOE, 
-                     weights = train$weight, family = "binomial")
+initial_score <- glm(
+  data = train, bad ~ tot_derog_WOE +
+    tot_tr_WOE +
+    age_oldest_tr_WOE +
+    tot_rev_line_WOE +
+    rev_util_WOE +
+    bureau_score_WOE +
+    down_pyt_WOE +
+    ltv_WOE,
+  weights = train$weight, family = "binomial"
+)
 
 summary(initial_score)
 
@@ -94,8 +96,8 @@ smbinning.metrics(dataset = train, prediction = "pred", actualclass = "bad", rep
 smbinning.metrics(dataset = train, prediction = "pred", actualclass = "bad", plot = "ks")
 smbinning.metrics(dataset = train, prediction = "pred", actualclass = "bad", plot = "auc")
 
-#Evaluate the Initial Model - Testing Data #
-for(i in 1:length(result_all_sig)) {
+# Evaluate the Initial Model - Testing Data #
+for (i in 1:length(result_all_sig)) {
   test <- smbinning.gen(df = test, ivout = result_all_sig[[i]], chrname = paste(result_all_sig[[i]]$x, "_bin", sep = ""))
 }
 
@@ -103,10 +105,10 @@ for (j in 1:length(result_all_sig)) {
   for (i in 1:nrow(test)) {
     bin_name <- paste(result_all_sig[[j]]$x, "_bin", sep = "")
     bin <- substr(test[[bin_name]][i], 2, 2)
-    
+
     woe_name <- paste(result_all_sig[[j]]$x, "_WOE", sep = "")
-    
-    if(bin == 0) {
+
+    if (bin == 0) {
       bin <- dim(result_all_sig[[j]]$ivtable)[1] - 1
       test[[woe_name]][i] <- result_all_sig[[j]]$ivtable[bin, "WoE"]
     } else {
@@ -115,50 +117,50 @@ for (j in 1:length(result_all_sig)) {
   }
 }
 
-test$pred <- predict(initial_score, newdata=test, type='response')
+test$pred <- predict(initial_score, newdata = test, type = "response")
 
 smbinning.metrics(dataset = test, prediction = "pred", actualclass = "bad", report = 1)
 smbinning.metrics(dataset = test, prediction = "pred", actualclass = "bad", plot = "ks")
 smbinning.metrics(dataset = test, prediction = "pred", actualclass = "bad", plot = "auc")
 
-accepts$pred <- predict(initial_score, newdata=accepts, type='response')
+accepts$pred <- predict(initial_score, newdata = accepts, type = "response")
 smbinning.metrics(dataset = test, prediction = "pred", actualclass = "bad", report = 1)
 
 # Add Scores to Initial Model #
 pdo <- 20
 score <- 600
 odds <- 50
-fact <- pdo/log(2)
-os <- score - fact*log(odds)
+fact <- pdo / log(2)
+os <- score - fact * log(odds)
 var_names <- names(initial_score$coefficients[-1])
 
-for(i in var_names) {
+for (i in var_names) {
   beta <- initial_score$coefficients[i]
   beta0 <- initial_score$coefficients["(Intercept)"]
   nvar <- length(var_names)
   WOE_var <- train[[i]]
-  points_name <- paste(str_sub(i, end = -4), "points", sep="")
+  points_name <- paste(str_sub(i, end = -4), "points", sep = "")
 
-  train[[points_name]] <- -(WOE_var*(beta) + (beta0/nvar))*fact + os/nvar
+  train[[points_name]] <- -(WOE_var * (beta) + (beta0 / nvar)) * fact + os / nvar
 }
 
-colini <- (ncol(train)-nvar + 1)
+colini <- (ncol(train) - nvar + 1)
 colend <- ncol(train)
 train$Score <- rowSums(train[, colini:colend])
 
 hist(train$Score, breaks = 50, main = "Distribution of Scores", xlab = "Score")
 
-for(i in var_names) {
+for (i in var_names) {
   beta <- initial_score$coefficients[i]
   beta0 <- initial_score$coefficients["(Intercept)"]
   nvar <- length(var_names)
   WOE_var <- test[[i]]
-  points_name <- paste(str_sub(i, end = -4), "points", sep="")
-  
-  test[[points_name]] <- -(WOE_var*(beta) + (beta0/nvar))*fact + os/nvar
+  points_name <- paste(str_sub(i, end = -4), "points", sep = "")
+
+  test[[points_name]] <- -(WOE_var * (beta) + (beta0 / nvar)) * fact + os / nvar
 }
 
-colini <- (ncol(test)-nvar + 1)
+colini <- (ncol(test) - nvar + 1)
 colend <- ncol(test)
 test$Score <- rowSums(test[, colini:colend])
 
@@ -168,17 +170,17 @@ hist(accepts_scored$Score, breaks = 50, main = "Distribution of Scores", xlab = 
 # Reject Inference - Load Reject Data #
 rejects <- read.csv(file = "C:/Users/adlabarr/Documents/Courses/IAA/Financial Analytics/Data/rejects.csv", header = TRUE)
 
-for(i in names(result_all_sig)) {
+for (i in names(result_all_sig)) {
   result_all_sig[[i]]$bands[1] <- min(rejects[[i]], na.rm = TRUE)
   result_all_sig[[i]]$bands[length(result_all_sig[[i]]$bands)] <- max(rejects[[i]], na.rm = TRUE)
 }
 
-for(i in 1:length(rejects[["ltv"]])){
+for (i in 1:length(rejects[["ltv"]])) {
   rejects[["ltv"]][is.na(rejects[["ltv"]])] <- floor(mean(rejects[["ltv"]], na.rm = TRUE))
 }
 
 rejects_scored <- rejects
-for(i in 1:length(result_all_sig)) {
+for (i in 1:length(result_all_sig)) {
   rejects_scored <- smbinning.gen(df = rejects_scored, ivout = result_all_sig[[i]], chrname = paste(result_all_sig[[i]]$x, "_bin", sep = ""))
 }
 
@@ -186,10 +188,10 @@ for (j in 1:length(result_all_sig)) {
   for (i in 1:nrow(rejects_scored)) {
     bin_name <- paste(result_all_sig[[j]]$x, "_bin", sep = "")
     bin <- substr(rejects_scored[[bin_name]][i], 2, 2)
-    
+
     woe_name <- paste(result_all_sig[[j]]$x, "_WOE", sep = "")
-    
-    if(bin == 0) {
+
+    if (bin == 0) {
       bin <- dim(result_all_sig[[j]]$ivtable)[1] - 1
       rejects_scored[[woe_name]][i] <- result_all_sig[[j]]$ivtable[bin, "WoE"]
     } else {
@@ -201,26 +203,26 @@ for (j in 1:length(result_all_sig)) {
 pdo <- 20
 score <- 600
 odds <- 50
-fact <- pdo/log(2)
-os <- score - fact*log(odds)
+fact <- pdo / log(2)
+os <- score - fact * log(odds)
 var_names <- names(initial_score$coefficients[-1])
 
-for(i in var_names) {
+for (i in var_names) {
   beta <- initial_score$coefficients[i]
   beta0 <- initial_score$coefficients["(Intercept)"]
   nvar <- length(var_names)
   WOE_var <- rejects_scored[[i]]
-  points_name <- paste(str_sub(i, end = -4), "points", sep="")
-  
-  rejects_scored[[points_name]] <- -(WOE_var*(beta) + (beta0/nvar))*fact + os/nvar
+  points_name <- paste(str_sub(i, end = -4), "points", sep = "")
+
+  rejects_scored[[points_name]] <- -(WOE_var * (beta) + (beta0 / nvar)) * fact + os / nvar
 }
 
-colini <- (ncol(rejects_scored)-nvar + 1)
+colini <- (ncol(rejects_scored) - nvar + 1)
 colend <- ncol(rejects_scored)
 rejects_scored$Score <- rowSums(rejects_scored[, colini:colend])
 
 # Reject Inference - Hard Cut-off #
-rejects_scored$pred <- predict(initial_score, newdata=rejects_scored, type='response')
+rejects_scored$pred <- predict(initial_score, newdata = rejects_scored, type = "response")
 
 rejects$bad <- as.numeric(rejects_scored$pred > 0.0603)
 rejects$weight <- ifelse(rejects$bad == 1, 2.80, 0.59)
@@ -236,17 +238,17 @@ rejects_scored$Score_parc <- cut(rejects_scored$Score, breaks = parc)
 
 table(accepts_scored$Score_parc, accepts_scored$bad)
 
-parc_perc <- table(accepts_scored$Score_parc, accepts_scored$bad)[,2]/rowSums(table(accepts_scored$Score_parc, accepts_scored$bad))
+parc_perc <- table(accepts_scored$Score_parc, accepts_scored$bad)[, 2] / rowSums(table(accepts_scored$Score_parc, accepts_scored$bad))
 
 rejects$bad <- 0
 
 rej_bump <- 1.25
 
-for(i in 1:(length(parc)-1)) {
-  for(j in 1:length(rejects_scored$Score)) {
-    if((rejects_scored$Score[j] > parc[i]) & 
-       (rejects_scored$Score[j] <= parc[i+1]) & 
-       (runif(n = 1, min = 0, max = 1) < (rej_bump*parc_perc[i]))) {
+for (i in 1:(length(parc) - 1)) {
+  for (j in 1:length(rejects_scored$Score)) {
+    if ((rejects_scored$Score[j] > parc[i]) &
+      (rejects_scored$Score[j] <= parc[i + 1]) &
+      (runif(n = 1, min = 0, max = 1) < (rej_bump * parc_perc[i]))) {
       rejects$bad[j] <- 1
     }
   }
@@ -260,17 +262,17 @@ rejects$good <- abs(rejects$bad - 1)
 comb_parc <- rbind(accepts, rejects) # New Combined Data Set #
 
 # Reject Inference - Fuzzy Augmentation #
-rejects_scored$pred <- predict(initial_score, newdata=rejects_scored, type='response')
+rejects_scored$pred <- predict(initial_score, newdata = rejects_scored, type = "response")
 
 rejects_g <- rejects
 rejects_b <- rejects
 
 rejects_g$bad <- 0
-rejects_g$weight <- (1-rejects_scored$pred)*2.80
+rejects_g$weight <- (1 - rejects_scored$pred) * 2.80
 rejects_g$good <- 1
 
 rejects_b$bad <- 1
-rejects_b$weight <- (rejects_scored$pred)*0.59
+rejects_b$weight <- (rejects_scored$pred) * 0.59
 rejects_b$good <- 0
 
 comb_fuzz <- rbind(accepts, rejects_g, rejects_b)
@@ -279,7 +281,7 @@ comb_fuzz <- rbind(accepts, rejects_g, rejects_b)
 comb <- comb_parc # Select which data set you want to use from above techniques #
 
 set.seed(1234)
-train_id <- sample(seq_len(nrow(comb)), size = floor(0.75*nrow(comb)))
+train_id <- sample(seq_len(nrow(comb)), size = floor(0.75 * nrow(comb)))
 
 train_comb <- comb[train_id, ]
 test_comb <- comb[-train_id, ]
@@ -293,16 +295,16 @@ num_names <- names(train_comb)[sapply(train_comb, is.numeric)] # Gathering the n
 
 result_all_sig <- list() # Creating empty list to store all results #
 
-for(i in 1:length(num_names)){
+for (i in 1:length(num_names)) {
   check_res <- smbinning(df = train_comb, y = "good", x = num_names[i])
-  
-  if(check_res == "Uniques values < 5") {
+
+  if (check_res == "Uniques values < 5") {
     next
   }
-  else if(check_res == "No significant splits") {
+  else if (check_res == "No significant splits") {
     next
   }
-  else if(check_res$iv < 0.1) {
+  else if (check_res$iv < 0.1) {
     next
   }
   else {
@@ -310,7 +312,7 @@ for(i in 1:length(num_names)){
   }
 }
 
-for(i in 1:length(result_all_sig)) {
+for (i in 1:length(result_all_sig)) {
   train_comb <- smbinning.gen(df = train_comb, ivout = result_all_sig[[i]], chrname = paste(result_all_sig[[i]]$x, "_bin", sep = ""))
 }
 
@@ -318,10 +320,10 @@ for (j in 1:length(result_all_sig)) {
   for (i in 1:nrow(train_comb)) {
     bin_name <- paste(result_all_sig[[j]]$x, "_bin", sep = "")
     bin <- substr(train_comb[[bin_name]][i], 2, 2)
-    
+
     woe_name <- paste(result_all_sig[[j]]$x, "_WOE", sep = "")
-    
-    if(bin == 0) {
+
+    if (bin == 0) {
       bin <- dim(result_all_sig[[j]]$ivtable)[1] - 1
       train_comb[[woe_name]][i] <- result_all_sig[[j]]$ivtable[bin, "WoE"]
     } else {
@@ -330,12 +332,14 @@ for (j in 1:length(result_all_sig)) {
   }
 }
 
-final_score <- glm(data = train_comb, bad ~ tot_tr_WOE +
-                       age_oldest_tr_WOE +
-                       tot_rev_line_WOE +
-                       rev_util_WOE +
-                       bureau_score_WOE 
-                     , weights = train_comb$weight, family = "binomial")
+final_score <- glm(
+  data = train_comb,
+  bad ~ tot_tr_WOE +
+    age_oldest_tr_WOE +
+    tot_rev_line_WOE +
+    rev_util_WOE +
+    bureau_score_WOE, weights = train_comb$weight, family = "binomial"
+)
 
 summary(final_score)
 
@@ -345,7 +349,7 @@ smbinning.metrics(dataset = train_comb, prediction = "pred", actualclass = "bad"
 smbinning.metrics(dataset = train_comb, prediction = "pred", actualclass = "bad", plot = "ks")
 smbinning.metrics(dataset = train_comb, prediction = "pred", actualclass = "bad", plot = "auc")
 
-for(i in 1:length(result_all_sig)) {
+for (i in 1:length(result_all_sig)) {
   test_comb <- smbinning.gen(df = test_comb, ivout = result_all_sig[[i]], chrname = paste(result_all_sig[[i]]$x, "_bin", sep = ""))
 }
 
@@ -353,10 +357,10 @@ for (j in 1:length(result_all_sig)) {
   for (i in 1:nrow(test_comb)) {
     bin_name <- paste(result_all_sig[[j]]$x, "_bin", sep = "")
     bin <- substr(test_comb[[bin_name]][i], 2, 2)
-    
+
     woe_name <- paste(result_all_sig[[j]]$x, "_WOE", sep = "")
-    
-    if(bin == 0) {
+
+    if (bin == 0) {
       bin <- dim(result_all_sig[[j]]$ivtable)[1] - 1
       test_comb[[woe_name]][i] <- result_all_sig[[j]]$ivtable[bin, "WoE"]
     } else {
@@ -365,7 +369,7 @@ for (j in 1:length(result_all_sig)) {
   }
 }
 
-test_comb$pred <- predict(final_score, newdata=test_comb, type='response')
+test_comb$pred <- predict(final_score, newdata = test_comb, type = "response")
 
 smbinning.metrics(dataset = test_comb, prediction = "pred", actualclass = "bad", report = 1)
 smbinning.metrics(dataset = test_comb, prediction = "pred", actualclass = "bad", plot = "ks")
@@ -374,21 +378,21 @@ smbinning.metrics(dataset = test_comb, prediction = "pred", actualclass = "bad",
 pdo <- 20
 score <- 600
 odds <- 50
-fact <- pdo/log(2)
-os <- score - fact*log(odds)
+fact <- pdo / log(2)
+os <- score - fact * log(odds)
 var_names <- names(final_score$coefficients[-1])
 
-for(i in var_names) {
+for (i in var_names) {
   beta <- final_score$coefficients[i]
   beta0 <- final_score$coefficients["(Intercept)"]
   nvar <- length(var_names)
   WOE_var <- train_comb[[i]]
-  points_name <- paste(str_sub(i, end = -4), "points", sep="")
-  
-  train_comb[[points_name]] <- -(WOE_var*(beta) + (beta0/nvar))*fact + os/nvar
+  points_name <- paste(str_sub(i, end = -4), "points", sep = "")
+
+  train_comb[[points_name]] <- -(WOE_var * (beta) + (beta0 / nvar)) * fact + os / nvar
 }
 
-colini <- (ncol(train_comb)-nvar + 1)
+colini <- (ncol(train_comb) - nvar + 1)
 colend <- ncol(train_comb)
 train_comb$Score <- rowSums(train_comb[, colini:colend])
 
