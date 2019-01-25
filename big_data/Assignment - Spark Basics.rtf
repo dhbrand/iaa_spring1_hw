@@ -1,0 +1,57 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf200
+{\fonttbl\f0\fnil\fcharset0 HelveticaNeue-Italic;\f1\fnil\fcharset0 HelveticaNeue-Bold;\f2\fnil\fcharset0 HelveticaNeue;
+}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww25220\viewh13020\viewkind0
+\deftab560
+\pard\pardeftab560\slleading20\partightenfactor0
+
+\f0\i\fs24 \cf0 #1. Load a CSV file into a spark dataframe. 
+\f1\i0\b \
+season_data=spark.read.load("/data/SeasonResults.csv",format="csv",header=True)\
+
+\f0\i\b0 #2. Display (show) the top 15 records for that spark dataframe that you just loaded.
+\f1\i0\b \
+season_data.show(15)
+\f2\b0 \
++------+------+------+-----+------+-----+------+----+-----+\
+|    ID|Season|Daynum|Wteam|Wscore|Lteam|Lscore|Wloc|Numot|\
++------+------+------+-----+------+-----+------+----+-----+\
+|100001|  1985|    20| 1228|    81| 1328|    64|   N|    0|\
+|100002|  1985|    25| 1106|    77| 1354|    70|   H|    0|\
+|100003|  1985|    25| 1112|    63| 1223|    56|   H|    0|\
+|100004|  1985|    25| 1165|    70| 1432|    54|   H|    0|\
+|100005|  1985|    25| 1192|    86| 1447|    74|   H|    0|\
+|100006|  1985|    25| 1218|    79| 1337|    78|   H|    0|\
+|100007|  1985|    25| 1228|    64| 1226|    44|   N|    0|\
+|100008|  1985|    25| 1242|    58| 1268|    56|   N|    0|\
+|100009|  1985|    25| 1260|    98| 1133|    80|   H|    0|\
+|100010|  1985|    25| 1305|    97| 1424|    89|   H|    0|\
+|100011|  1985|    25| 1307|   103| 1288|    71|   H|    0|\
+|100012|  1985|    25| 1344|    75| 1438|    71|   N|    0|\
+|100013|  1985|    25| 1374|    91| 1411|    72|   H|    0|\
+|100014|  1985|    25| 1412|    70| 1397|    65|   N|    0|\
+|100015|  1985|    25| 1417|    87| 1225|    58|   H|    0|\
++------+------+------+-----+------+-----+------+----+-----+\
+only showing top 15 rows\
+
+\f0\i #3. Display the total number of records in the spark dataframe.
+\f1\i0\b \
+print("Total Records: \{\}".format(season_data.count()))
+\f2\b0 \
+Total Records: 145289\
+
+\f0\i #4. Filter the spark dataframe. Filtered on winning scores above 160.
+\f1\i0\b \
+season_data.filter(season_data.Wscore > 160).collect()
+\f2\b0 \
+[Row(ID='116854', Season='1989', Daynum='68', Wteam='1258', Wscore='162', Lteam='1109', Lscore='144', Wloc='A', Numot='0'), Row(ID='117868', Season='1989', Daynum='92', Wteam='1258', Wscore='181', Lteam='1109', Lscore='150', Wloc='H', Numot='0'), Row(ID='119654', Season='1990', Daynum='30', Wteam='1328', Wscore='173', Lteam='1109', Lscore='101', Wloc='H', Numot='0'), Row(ID='120023', Season='1990', Daynum='40', Wteam='1116', Wscore='166', Lteam='1109', Lscore='101', Wloc='H', Numot='0'), Row(ID='124342', Season='1991', Daynum='47', Wteam='1328', Wscore='172', Lteam='1258', Lscore='112', Wloc='H', Numot='0'), Row(ID='124971', Season='1991', Daynum='68', Wteam='1258', Wscore='186', Lteam='1109', Lscore='140', Wloc='H', Numot='0')]\
+
+\f0\i #5. Perform a groupby that sums one of your numeric variables. Converted Wscore to numeric. Grouped by season. Instead of summing, found the winning score for each season.
+\f1\i0\b \
+from pyspark.sql.types import IntegerType\
+season_data2 = season_data.withColumn("Wscore",season_data["Wscore"].cast(IntegerType()))\
+season_data2.groupBy('Season').max('Wscore').collect()
+\f2\b0 \
+[Row(Season='1987', max(Wscore)=133), Row(Season='2016', max(Wscore)=144), Row(Season='2012', max(Wscore)=124), Row(Season='1988', max(Wscore)=152), Row(Season='2014', max(Wscore)=126), Row(Season='2013', max(Wscore)=120), Row(Season='2005', max(Wscore)=123), Row(Season='2000', max(Wscore)=143), Row(Season='2002', max(Wscore)=133), Row(Season='2009', max(Wscore)=127), Row(Season='1995', max(Wscore)=156), Row(Season='2006', max(Wscore)=129), Row(Season='2004', max(Wscore)=122), Row(Season='1989', max(Wscore)=181), Row(Season='2011', max(Wscore)=121), Row(Season='1992', max(Wscore)=159), Row(Season='2008', max(Wscore)=129), Row(Season='1999', max(Wscore)=132), Row(Season='1994', max(Wscore)=150), Row(Season='1997', max(Wscore)=137), Row(Season='2007', max(Wscore)=129), Row(Season='1996', max(Wscore)=142), Row(Season='1986', max(Wscore)=151), Row(Season='1985', max(Wscore)=142), Row(Season='2015', max(Wscore)=126), Row(Season='1998', max(Wscore)=153), Row(Season='1993', max(Wscore)=155), Row(Season='2001', max(Wscore)=130), Row(Season='2010', max(Wscore)=134), Row(Season='1990', max(Wscore)=173), Row(Season='1991', max(Wscore)=186), Row(Season='2003', max(Wscore)=142)]}
