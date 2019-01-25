@@ -112,3 +112,14 @@ venv.bak/
 
 # Office Temp Files
 ~$*
+
+# Daves SAS E Miner Project 
+/financial_analytics/fin/
+
+# Daves DOE labs
+/d_of_e/labs/lab?_dave.sas
+
+# Daves quiz code
+*quiz*
+
+
