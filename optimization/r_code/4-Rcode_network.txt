@@ -1,0 +1,70 @@
+library(lpSolve)
+
+###Transportation Model
+cost=matrix(c(.6,.36,.65,.56,.3,.68,.22,.28,.55,.4,.58,.42), ncol=4, byrow=F)
+capacity=c(9000,12000,13000)
+demand=c(7500,8500,9500,8000)
+f.obj=as.numeric(cost)
+f.con=matrix(0,nrow=7,ncol=12)
+temp=c(1,4,7,10)
+for (i in 1:3)
+{f.con[i,(i-1+temp)]=1}
+temp2=c(1,2,3)
+for (i in 1:4)
+{f.con[i+3,(3*(i-1)+temp2)]=1}
+f.rhs=c(capacity,demand)
+f.dir=c(rep('<=',3),rep('>=',4))
+lp.model=lp (direction="min", f.obj, f.con, f.dir, f.rhs,compute.sens=1)
+matrix(lp.model$solution,nrow=3,byrow=F)
+matrix(lp.model$duals[8:19],nrow=3,byrow=F)
+
+
+###Assignment Model
+time=matrix(c(38,34,41,33,75,76,71,80,44,43,41,45,27,25,26,30),nrow=4,byrow=F)
+f.obj=as.numeric(time)
+f.con=matrix(0,nrow=8,ncol=16)
+temp=c(1,5,9,13)
+for (i in 1:4)
+{f.con[i,(i-1+temp)]=1}
+temp2=c(1,2,3,4)
+for (i in 1:4)
+{f.con[i+4,(4*(i-1)+temp2)]=1}
+f.rhs=rep(1,8)
+f.dir=rep('=',8)
+lp.model=lp (direction="min", f.obj, f.con, f.dir, f.rhs)
+matrix(lp.model$solution,nrow=4,byrow=F)
+lp.model$objval
+
+
+###Transshipment Model
+f2dcost=matrix(c(1.28,1.36,1.33,1.38,1.68,1.55),nrow=3,byrow=T)
+d2wcost=matrix(c(0.6,0.42,0.32,0.44,0.68,0.57,0.3,0.4,0.38,0.72),nrow=2,byrow=T)
+demand=c(1200,1300,1400,1500,1600)
+f.obj=c(as.numeric(f2dcost),as.numeric(d2wcost))
+f.con=matrix(0,nrow=10,ncol=16)
+for (i in 1:3)
+{f.con[i,i]=1
+ f.con[i,i+3]=1}
+for (i in 1:5)
+{f.con[i+3,6+2*i-1]=1
+ f.con[i+3,6+2*i]=1}
+temp=c(7,9,11,13,15)
+temp2=c(8,10,12,14,16)
+f.con[9,temp]=1
+f.con[9,1:3]=-1
+f.con[10,temp2]=1
+f.con[10,4:6]=-1
+f.rhs=c(rep(2500,3),demand,0,0)
+f.dir=c(rep('<=',3),rep('>=',5),'=','=')
+lp.model=lp (direction="min", f.obj, f.con, f.dir, f.rhs)
+
+first.lp=matrix(result$x[1:6],nrow=3,byrow=F)
+rownames(first.lp)=c('Fac1','Fac2','Fac3')
+colnames(first.lp)=c('Dist1','Dist2')
+first.lp
+second.lp=matrix(result$x[7:16],nrow=2,byrow=F)
+rownames(second.lp)=c('Dist1','Dist2')
+colnames(second.lp)=c('Ware1','Ware2','Ware3','Ware4','Ware5')
+second.lp
+
+
