@@ -5,75 +5,80 @@
 /*-------------------------------*/
 
 
-/* Load Needed Data */
+/*Data is in financial_analytics/data as a SAS Table */
+/*            
 proc import datafile = 'stocks.csv'
 	out = stocks dbms = csv replace;
+	datarow = 3;
 run;
 
-/* Reset the Format to Avoid SGPLOT Warnings Later On */
-data Stocks;
-  set Stocks;
-  format Index date7.;
+*Reset the Format to Avoid SGPLOT Warnings Later On;
+data fin.Stocks;
+  set fin.Stocks;
+  Date = input(Index, anydtdte32.);
+  format Date date7.;
 run; 
 
-/* Add 10 Observations for Forecasting at End of Series */
-data stocks(drop=i);
-	set Stocks end = eof;
+*Add 10 Observations for Forecasting at End of Series/
+data fin.stocks(drop=i);
+	set fin.Stocks end = eof;
 	output;
 	if eof then do i=1 to 30;
-		if weekday(Index) in(2,3,4,5) then Index=Index+1;
-		else Index=Index+3;
+		if weekday(Date) in(2,3,4,5) then Date=Date+1;
+		else Date=Date+3;
 		MSFT_Close=.;
 		msft_r=.;
 		output;
 	end;
 run;
+ */
+
 
 /* Plot the Price Data */
-proc sgplot data=Stocks;
+proc sgplot data=fin.Stocks;
   title "MSFT: Price";
-  series x=Index y=MSFT_Close;
+  series x=Date y=MSFT_Close;
   keylegend / location=inside position=topright;
   xaxis VALUES= ("01JAN2007"d to "01JAN2019"d by year);
 run;
 
 /* Plot the Returns Data */
-proc sgplot data=Stocks;
+proc sgplot data=fin.Stocks;
   title "MSFT: Log Returns";
-  series x=Index y=msft_r;
+  series x=Date y=msft_r;
   keylegend / location=inside position=topright;
   xaxis VALUES= ("01JAN2007"d to "01JAN2019"d by year);
 run;
 
 /* Fit Kernel Density-estimation on Log Returns*/
-proc sgplot data=Stocks;
+proc sgplot data=fin.Stocks;
   title "MSFT: Log Returns Kernel Density";
   density msft_r / type=kernel;
   keylegend / location=inside position=topright;
 run;
 
 /* Test for GARCH Effects and Normality */
-proc autoreg data=Stocks all plots(unpack);
+proc autoreg data=fin.Stocks all plots(unpack);
    model msft_r =/ archtest normal;
 run;
 
 /* Estimate Different GARCH Models */
 ods output FitSummary=fitsum_all_garch_models;
-proc autoreg data=Stocks OUTEST=param_estimates;
+proc autoreg data=fin.Stocks OUTEST=param_estimates;
    garch_n:   model msft_r = / noint garch=(p=1, q=1) method=ml; 
                             output out=garch_n ht=predicted_var;
-   *garch_t:   model msft_r =  / noint garch=(p=1, q=1) dist=t method=ml; 
-                            *output out=garch_t ht=predicted_var;
-   *egarch:    model msft_r = / noint garch=(p=1, q=1 ,type=exp ) method=ml;  
-                            *output out=egarch ht=predicted_var;
-   *qgarch_t:  model msft_r = / noint garch=(p=1, q=1, type=QGARCH) dist=t method=ml;
-                            *output out=qgarch_t ht=predicted_var;
-   *qgarch:    model msft_r = / noint garch=(p=1, q=1, type=QGARCH) method=ml;
-                            *output out=qgarch ht=predicted_var;
-   *garch_m:   model msft_r = / noint garch=(p=1, q=1, mean=linear) method=ml;
-   							*output out=garch_m ht=predicted_var;
-   *ewma:      model msft_r = / noint garch=(p=1, q=1, type=integ,noint) method=ml;
-                            *output out=ewma ht=predicted_var;
+   garch_t:   model msft_r =  / noint garch=(p=1, q=1) dist=t method=ml; 
+                            output out=garch_t ht=predicted_var;
+   egarch:    model msft_r = / noint garch=(p=1, q=1 ,type=exp ) method=ml;  
+                            output out=egarch ht=predicted_var;
+   qgarch_t:  model msft_r = / noint garch=(p=1, q=1, type=QGARCH) dist=t method=ml;
+                            output out=qgarch_t ht=predicted_var;
+   qgarch:    model msft_r = / noint garch=(p=1, q=1, type=QGARCH) method=ml;
+                            output out=qgarch ht=predicted_var;
+   garch_m:   model msft_r = / noint garch=(p=1, q=1, mean=linear) method=ml;
+   							output out=garch_m ht=predicted_var;
+   ewma:      model msft_r = / noint garch=(p=1, q=1, type=integ,noint) method=ml;
+                            output out=ewma ht=predicted_var;
 run;
 
 /* Prepare Data for Plotting the Results */
@@ -94,9 +99,9 @@ run;
 
 /* Plot the Different Model Forecasts */
 title;
-proc gplot data=all_results /*(where=(Index ge '01JAN2013'd))*/;
-  plot (predicted_var)*Index = model/ legend=legend1;
-  plot msft_r*Index / legend=legend1;
+proc gplot data=all_results /*(where=(Date ge '01JAN2013'd))*/;
+  plot (predicted_var)*Date = model/ legend=legend1;
+  plot msft_r*Date / legend=legend1;
   symbol1 i=join c=blue      w=2 v=none;
   symbol2 i=join c=green     w=2 v=none;
   symbol3 i=join c=red       w=2 v=none;

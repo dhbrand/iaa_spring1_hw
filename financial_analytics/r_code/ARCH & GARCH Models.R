@@ -26,7 +26,7 @@ stocks <- cbind(AAPL[,4] ,MSFT[,4])
 stocks$msft_r <- ROC(stocks$MSFT.Close)
 stocks$aapl_r <- ROC(stocks$AAPL.Close)
 
-write.zoo(stocks, file = "C:/Users/adlabarr/Documents/Courses/IAA/Simulation and Risk/Data/stocks.csv", sep=",")
+write.zoo(stocks, file = "financial_analytics/data/stocks.csv", sep=",")
 
 # Plot Price Data #
 plot(stocks$MSFT.Close, col="black", main="MSFT Stock Price", xlab="", ylab="Price", lwd=2, type="l")
