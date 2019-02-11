@@ -75,3 +75,4 @@ EWMA <- ugarchfit(data = stocks$msft_r[-1],
                                                         variance.targeting=0), 
                                     mean.model=list(armaOrder=c(0,0))))
 EWMA
+

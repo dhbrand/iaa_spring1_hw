@@ -27,7 +27,7 @@ stocks_w$ebay_r <- periodReturn(stocks_w$EBAY.Close, period = "weekly")
 stocks_w$googl_r <- periodReturn(stocks_w$GOOGL.Close, period = "weekly")
 stocks_w$dji_r <- periodReturn(stocks_w$DJI.Close, period = "weekly")
 
-write.zoo(stocks_w, file = "C:/Users/adlabarr/Documents/Courses/IAA/Financial Analytics/Data/stocks_w.csv", sep=",")
+write.zoo(stocks_w, file = "financial_analytics/data/stocks_w.csv", sep=",")
 
 # Plot Returns Data #
 plot(stocks_w$msft_r, col="black", main="MSFT Stock Return (Logarithmic)", xlab="", ylab="Weekly Returns", lwd=2, type="l")
