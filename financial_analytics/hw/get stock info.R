@@ -40,6 +40,7 @@ stocks$wmt_r <- ROC(stocks$WMT.Close)
 stocks$wba_r <- ROC(stocks$WBA.Close)
 stocks$dis_r <- ROC(stocks$DIS.Close)
 
+# Filter to desired time period
 stocks <- stocks["2017-02/2019-02-08"]
 
 write.zoo(stocks, file = "C:/Users/Bill/Documents/GitHub/og_sp1_hw/financial_analytics/hw/Stocks.csv", sep=",")
