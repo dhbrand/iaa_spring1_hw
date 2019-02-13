@@ -3,8 +3,9 @@
 #-----------------------------------------------------#
 
 # load CSV data file
-
+library(stringr)
 library(graphics)
+library(quantmod)
 library(TTR)
 library(ks)
 library(scales)
@@ -18,12 +19,18 @@ library(dplyr)
 DJIA = c("MMM","AXP","AAPL","BA","CAT","CVX","CSCO","KO","DWDP","XOM","GS","HD","IBM","INTC","JNJ",
          "JPM","MCD","MRK","MSFT","NKE","PFE","PG","TRV","UNH","UTX","VZ","V","WMT","WBA","DIS")
 
+
+getSymbols(DJIA)
+
+stocks <- cbind(MMM[,4],AXP[,4],AAPL[,4],BA[,4],CAT[,4],CVX[,4],KO[,4],DWDP[,4],XOM[,4],GS[,4],HD[,4],
+      IBM[,4],INTC[,4],JNJ[,4],JPM[,4],MCD[,4],MRK[,4],MSFT[,4],NKE[,4],PFE[,4],PG[,4],TRV[,4],UNH[,4],UTX[,4],VZ[,4],V[,4],WBA[,4],DIS[,4])
+
 # Part 1 #
 
 # Rank stocks by ARCH test significance
 ARCH_tests = list()
 for (i in 1:30){
-  ARCH_tests[DJIA[i]] = sum(arch.test(arima(stocks[,(i+30)], order = c(0,0,0)), output = TRUE)[,5])
+  ARCH_tests[DJIA[i]] = sum(arch.test(arima(stocks[,i], order = c(0,0,0)), output = TRUE)[,5])
 }
 tests <- data.frame(unlist(ARCH_tests), DJIA)
 tests <- arrange(tests,unlist.ARCH_tests.)
