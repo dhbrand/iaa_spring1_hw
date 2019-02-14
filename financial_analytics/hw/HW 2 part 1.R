@@ -22,22 +22,36 @@ DJIA = c("MMM","AXP","AAPL","BA","CAT","CVX","CSCO","KO","DWDP","XOM","GS","HD",
 
 getSymbols(DJIA)
 
-stocks <- cbind(MMM[,4],AXP[,4],AAPL[,4],BA[,4],CAT[,4],CVX[,4],KO[,4],DWDP[,4],XOM[,4],GS[,4],HD[,4],
-      IBM[,4],INTC[,4],JNJ[,4],JPM[,4],MCD[,4],MRK[,4],MSFT[,4],NKE[,4],PFE[,4],PG[,4],TRV[,4],UNH[,4],UTX[,4],VZ[,4],V[,4],WBA[,4],DIS[,4])
+stocks <- cbind(MMM[,4],AXP[,4],AAPL[,4],BA[,4],CAT[,4],CVX[,4],CSCO[,4],KO[,4],DWDP[,4],XOM[,4],GS[,4],HD[,4],
+      IBM[,4],INTC[,4],JNJ[,4],JPM[,4],MCD[,4],MRK[,4],MSFT[,4],NKE[,4],PFE[,4],PG[,4],TRV[,4],UNH[,4],UTX[,4],VZ[,4],V[,4],WMT[,4],WBA[,4],DIS[,4])
+
+#Create Rolling returns for each stock
+#Cbind the stock DF with the returns DF
+
+iterations = 3049
+variables = 30
+
+output <- matrix(ncol=variables, nrow=iterations)
+
+for(i in 1:variables){
+  output[,i] <- ROC(stocks[,i])
+}
+
+stocks <- cbind(stocks,output)
 
 # Part 1 #
 
 # Rank stocks by ARCH test significance
 ARCH_tests = list()
 for (i in 1:30){
-  ARCH_tests[DJIA[i]] = sum(arch.test(arima(stocks[,i], order = c(0,0,0)), output = TRUE)[,5])
+  ARCH_tests[DJIA[i]] = arch.test(arima(stocks[,i], order = c(0,0,0)), output = TRUE)[,5]
 }
 tests <- data.frame(unlist(ARCH_tests), DJIA)
 tests <- arrange(tests,unlist.ARCH_tests.)
 ## Top 5: IBM, JNJ, NKE, PG, WMT
 top5 = c("IBM.Close","JNJ.Close","NKE.Close","PG.Close","WMT.Close","ibm_r","jnj_r","nke_r","pg_r","wmt_r")
-stocks <- data.frame(stocks)
-stocks <- stocks[,top5]
+stocks_df <- data.frame(stocks)
+top_stocks <- stocks[,top5]
 
 # Create GARCH models and get parameters and AIC for each stock
 
