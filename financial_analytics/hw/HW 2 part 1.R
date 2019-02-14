@@ -50,12 +50,12 @@ colnames(stocks)[31:60] <- c(paste_names)
 # Rank stocks by ARCH test significance
 ARCH_tests = list()
 for (i in 1:30){
-  ARCH_tests[DJIA[i]] = sum(arch.test(arima(stocks[,i], order = c(0,0,0)), output = TRUE)[,5])
+  ARCH_tests[DJIA[i]] = arch.test(arima(stocks[,i], order = c(0,0,0)), output = TRUE)[,4]
 }
 warnings()
 tests <- data.frame(unlist(ARCH_tests), DJIA)
-tests <- arrange(tests,unlist.ARCH_tests.)
-## Top 5: IBM, JNJ, NKE, PG, WMT
+tests <- arrange(tests,desc(unlist.ARCH_tests.))
+## Top 5: WMT, JNJ, PG, IBM, NKE
 top5 = c("IBM.Close","JNJ.Close","NKE.Close","PG.Close","WMT.Close","ibm_r","jnj_r","nke_r","pg_r","wmt_r")
 stocks_df <- data.frame(stocks)
 top_stocks <- stocks[,top5]
