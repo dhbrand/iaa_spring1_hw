@@ -1,7 +1,7 @@
 /*Final code for Orange Team 1*/
 proc glm data=doe.part2_with_blocks; 
 	class  block location price experience other ; 
-	model will_attend =  block location|price|experience|other /;
+	model will_attend =  block location price experience other /;
 * 5 locations creates 10 comparisons;
 	estimate 'location 1 VS. 2' location 1 -1 0 0 0; 
 	estimate 'location 1 VS. 3' location 1 0 -1 0 0;
@@ -22,7 +22,7 @@ proc glm data=doe.part2_with_blocks;
 	estimate 'price 2 VS. 4' price 0 1 0 -1;
 	estimate 'price 3 VS. 4' price 0 0 1 -1;
 
-	* 1 experiences creates 2 comparisons;
+	* 2 experiences creates 1 comparisons;
 	estimate 'experience 1 VS. 2' experience 1 -1 0;
 
 	* 3 others creates 3 comparisons;

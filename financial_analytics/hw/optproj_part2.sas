@@ -141,7 +141,7 @@ quit;
   /*Required portfolio return: PARAMETER THAT WE WILL ANALYZE*/ 
   num Required_Portfolio_Return;   
   /*Range of parameter values*/ 
-  set parameter_values = {0.26 to 0.4 by 0.020}; 
+  set parameter_values = {0.0026 to 0.004 by 0.0002}; 
 
   /*OUTPUT*/
   /*Array to hold the value of the objective function*/
@@ -196,4 +196,11 @@ quit;
    /*Store the weights from all runs in a SAS dataset*/ 
    create data min_stddev_weight_results from 
          [_param_ _stock_]={parameter_values , stock_symbols} Weights_Results;
+quit;
+
+
+
+/*Efficient Frontier*/
+proc sgplot data=Obj_value_stddev_results;
+series x=Portfolio_Stdev_Results y=expected_return_results;
 quit;

@@ -48,7 +48,7 @@ DJIA = c("MMM","AXP","AAPL","BA","CAT","CVX","CSCO","KO","DWDP","XOM","GS","HD",
 # colnames(stocks)[31:60] <- c(paste_names)
 
 stocks <- readr::read_csv("financial_analytics/hw/Stocks.csv")
-|stocks <- stocks[,2:61]
+stocks <- stocks[,2:61]
 
 # Part 1 #
 

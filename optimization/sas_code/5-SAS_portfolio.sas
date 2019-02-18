@@ -25,7 +25,6 @@ cards;
 0.01114	-0.0607	0.01603	0.08357	-0.03981
 0.0161	-0.12925	0.04076	-0.00257	-0.03415
 0.01188	0.06094	-0.06442	0.01856	0.00763
-. . . . .
 ;
 
 proc corr data=portfolio cov out=Corr;
@@ -84,7 +83,7 @@ quit;
 
 /*Create monthly returns*/
   data _returns_;
-  set stocks;
+  set opt.stocks;
   month=month(date);
   year=year(date);
   run;

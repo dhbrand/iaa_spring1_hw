@@ -1,5 +1,5 @@
 
-libname optim 'G:\My Drive\Spring 1  2017 - Optimization\Code';
+libname opt 'G:\My Drive\Spring 1  2017 - Optimization\Code';
 proc optmodel;
 /* Define sets */
 set <num> products;
@@ -14,17 +14,17 @@ num timeperdept {products, departments};
 
 /* read data */
 
-read data optim.dsf_department_data into
+read data opt.dsf_department_data into
    departments=[department_id]
    maxTime  /* if name is same in data set, do not need to put '=' */
    costperhour=cost;
 
-read data optim.dsf_product_data into
+read data opt.dsf_product_data into
 	products=[product_id]
 	price
 	demand;
 
-read data optim.dsf_product_department_data into
+read data opt.dsf_product_department_data into
 	[product_id department_id]
 	timeperdept = time;
 
@@ -44,13 +44,13 @@ con department_avail { d in departments}: sum {p in products} prodhrsdept[p,d] <
 con product_demand {p in products}: prodquantity[p] <= demand[p];
 
 solve;
-create data optim.dsf_solution from [products] prodquantity;
+create data opt.dsf_solution from [products] prodquantity;
 
 	quit;
 
 
 /* Get just positive values  */
 data posprod;
- set optim.dsf_solution;
+ set opt.dsf_solution;
  where prodquantity>0;
  run;
