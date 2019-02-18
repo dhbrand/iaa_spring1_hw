@@ -161,6 +161,7 @@ quit;
   /* Declare constraints */
   con c1: sum{i in Stock_Symbols} weights[i] = 1;
   con c2: (exp_portf_return+1)**5 - 1 = Required_Portfolio_Return;
+  con c3: exp_portf_return >= 0.0005;
 
   /*READ INPUT DATA*/
   /*Read the expected monthly returns. The first column, _name_ holds the    */
