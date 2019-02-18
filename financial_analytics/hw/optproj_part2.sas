@@ -43,7 +43,7 @@ run;
 /* Get New Forecasted Values for Variance */
 data combined (keep=date pred_var_ibm pred_var_jnj pred_var_nke pred_var_pg pred_var_wmt);
 	merge ibm_garch_t jnj_qgarch nke_garch_t pg_garch_t wmt_qgarch;
-	if index <= '01FEB2019'd then delete;
+	if index <= '08FEB2019'd then delete;
 run;
 
 proc means data=combined median;
@@ -64,9 +64,9 @@ proc corr data=stocks_top5 cov  out=Corr;
 	var ibm_r jnj_r nke_r pg_r wmt_r;
 run;
 
-proc means data=stocks_top5 median;
+proc means data=stocks_top5 median noprint;
 	var ibm_r jnj_r nke_r pg_r wmt_r;
-	output out=Median median= /autoname;
+	output out=Median(drop=_type_ _freq_) median=;
 run;
 
 data Median;
@@ -74,6 +74,9 @@ data Median;
   rename ibm_r_Median=ibm_r jnj_r_Median=jnj_r nke_r_Median=nke_r pg_r_Median=pg_r wmt_r_Median=wmt_r;
   _NAME_ = ' ';
 run;
+  proc transpose data=median 
+        out=_expected_monthly_returns(rename=(Col1=monthly_return));
+  run;
 
 data Cov;
 	set Corr;
@@ -122,4 +125,74 @@ proc optmodel;
   /* Output Results */
   create data Weight_G from [Assets1] Proportion;
 
+quit;
+
+
+
+/*Use OPTMODEL to setup and solve the minimum variance problem*/ 
+  proc optmodel printlevel=0 FDIGITS=8;
+  set <str> Stock_Symbols; 
+
+  /*DECLARE OPTIMIZATION PARAMETERS*/  
+  /*Expected return for each stock*/
+  num expected_return_stock{Stock_Symbols};      
+  /*Covariance matrix of stocks*/ 
+  num Covariance{Stock_Symbols,Stock_Symbols};
+  /*Required portfolio return: PARAMETER THAT WE WILL ANALYZE*/ 
+  num Required_Portfolio_Return;   
+  /*Range of parameter values*/ 
+  set parameter_values = {0.26 to 0.4 by 0.020}; 
+
+  /*OUTPUT*/
+  /*Array to hold the value of the objective function*/
+  num Portfolio_Stdev_Results{parameter_values};  
+  /*Array to hold the value of the exp. return*/
+  num Expected_Return_Results{parameter_values};  
+  /*Array to hold the value of the weights*/
+  num Weights_Results{parameter_values,Stock_Symbols};  
+
+  /* DECLARE OPTIMIZATION VARIABLES AND THEIR CONSTRAINTS*/
+  /*Short positions are not allowed*/
+  var weights{Stock_Symbols}>=0;    
+
+  /* Declare implied variables (Optional)*/
+  impvar exp_portf_return = sum{i in Stock_Symbols} expected_return_stock[i] * weights[i];
+
+  /* Declare constraints */
+  con c1: sum{i in Stock_Symbols} weights[i] = 1;
+  con c2: exp_portf_return = Required_Portfolio_Return;
+
+  /*READ INPUT DATA*/
+  /*Read the expected monthly returns. The first column, _name_ holds the    */
+  /*index of stock symbols we want to use; that's why we include it with [].*/ 
+  read data work._expected_monthly_returns into Stock_Symbols=[_name_] expected_return_stock=monthly_return;
+  /*Read the covariance matrix*/       
+  read data work.cov into [_name_] {j in Stock_Symbols} <Covariance[_name_,j]=col(j)>;
+
+  /* DECLARE OBJECTIVE FUNCTION */ 
+  min Portfolio_Stdev = 
+     sum{i in Stock_Symbols, j in Stock_Symbols}Covariance[i,j] * weights[i] * weights[j];
+
+  /*SOLVE THE PROBLEM FOR EACH PARAMETER VALUE*/
+  for {r in parameter_values} do;
+    /*Set the minimum portfolio return value to be used in each case*/
+    Required_Portfolio_Return=r; 
+    solve;
+    /*Store the value of the objective function*/
+    Portfolio_Stdev_Results[r]=Portfolio_Stdev; 
+    /*Store the value of the expected returns*/ 
+    Expected_Return_Results[r]=exp_portf_return;
+    /*Store the weights*/
+    for {i in Stock_Symbols} do;
+      Weights_Results[r,i]=weights[i];
+    end;
+  end;
+
+   /*Store the portfolio return and std.dev from all runs in a SAS dataset*/
+   create data obj_value_stddev_results from 
+         [parameter_values] Portfolio_Stdev_Results Expected_Return_Results;
+
+   /*Store the weights from all runs in a SAS dataset*/ 
+   create data min_stddev_weight_results from 
+         [_param_ _stock_]={parameter_values , stock_symbols} Weights_Results;
 quit;
