@@ -47,8 +47,8 @@ DJIA = c("MMM","AXP","AAPL","BA","CAT","CVX","CSCO","KO","DWDP","XOM","GS","HD",
 # 
 # colnames(stocks)[31:60] <- c(paste_names)
 
-stocks <- readr::read_csv("GitHub/og_sp1_hw/financial_analytics/hw/Stocks.csv")
-stocks <- stocks[,2:61]
+stocks <- readr::read_csv("financial_analytics/hw/Stocks.csv")
+|stocks <- stocks[,2:61]
 
 # Part 1 #
 
@@ -115,6 +115,32 @@ best_GARCH_models <- info[c(2,8,10,14,20),]
 top <- c("IBM", "JNJ", "NKE","PG", "WMT")
 best_GARCH_models["stock"] <- top
 
+# Next 5 days of volatility for using top model for each stock
+# IBM best model is GARCH-t
+ibm_mod <- garchFit(formula= ~ garch(1,1), data=stocks[,'ibm_r'], 
+                    cond.dist="std", include.mean = FALSE)
+ibm_for <- predict(ibm_mod, n.ahead=5)$standardDeviation
+
+# JNJ best model is QGARCH-t
+jnj_mod <- garchFit(formula= ~ garch(1,1), data=stocks[,'jnj_r'], 
+                    cond.dist="sstd", include.mean = FALSE)
+jnj_for <- predict(jnj_mod, n.ahead=5)$standardDeviation
+
+# NKE best model is GARCH-t
+nke_mod <- garchFit(formula= ~ garch(1,1), data=stocks[,'nke_r'], 
+                    cond.dist="std", include.mean = FALSE)
+nke_for <- predict(nke_mod, n.ahead=5)$standardDeviation
+
+# PG best model is GARCH-t
+pg_mod <- garchFit(formula= ~ garch(1,1), data=stocks[,'pg_r'], 
+                   cond.dist="std", include.mean = FALSE)
+pg_for <- predict(pg_mod, n.ahead=5)$standardDeviation
+
+# WMT best model is QGARCH-t
+wmt_mod <- garchFit(formula= ~ garch(1,1), data=stocks[,'wmt_r'], 
+                    cond.dist="sstd", include.mean = FALSE)
+wmt_for <- predict(wmt_mod, n.ahead=5)$standardDeviation
+
 # rank by alpha (most susceptible to market shock)
 rank_alpha <- arrange(best_GARCH_models, desc(alpha))
 ## from most to least susceptible: NKE, WMT, JNJ, IBM, PG
@@ -122,4 +148,12 @@ rank_alpha <- arrange(best_GARCH_models, desc(alpha))
 # rank by beta (longest lasting shock effects)
 rank_beta <- arrange(best_GARCH_models, desc(beta))
 ## from longest to shortest effect: PG, IBM, JNJ, NKE, WMT
+
+# Part 2 ####
+# historical median return for each of 5 top stocks
+hist_med_ret <- purrr::map_dbl(stocks[,top5[6:10]], median) %>% 
+  cbind(top5[6:10], .)
+
+readr::write_csv(stocks[,c('Index',top5)], path = "financial_analytics/data/stocks_top5.csv")
+
 
