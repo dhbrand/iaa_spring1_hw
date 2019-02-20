@@ -69,14 +69,14 @@ proc means data=stocks_top5 median noprint;
 	output out=Median(drop=_type_ _freq_) median=;
 run;
 
-data Median;
+/*data Median;
   set Median;
   rename ibm_r_Median=ibm_r jnj_r_Median=jnj_r nke_r_Median=nke_r pg_r_Median=pg_r wmt_r_Median=wmt_r;
   _NAME_ = ' ';
+run;*/
+
+proc transpose data=median out=_expected_monthly_returns(rename=(Col1=monthly_return));
 run;
-  proc transpose data=median 
-        out=_expected_monthly_returns(rename=(Col1=monthly_return));
-  run;
 
 data Cov;
 	set Corr;
@@ -91,41 +91,6 @@ data Cov;
 	if _NAME_="pg_r" then pg_r=&pg_pred;
 	if _NAME_="wmt_r" then wmt_r=&wmt_pred;
 run;
-
-proc optmodel;
-  
-  /* Declare Sets and Parameters */
-  set <str> Assets1, Assets2, Assets3;
-  num Covariance{Assets1,Assets2};
-  num Median{Assets1};
-
-  /* Read in SAS Data Sets */
-  read data Cov into Assets1=[_NAME_];
-  read data Cov into Assets2=[_NAME_] {i in Assets1}     
-    <Covariance[I,_NAME_]=col(i)>;
-  read data Med into Assets3=[_NAME_] {i in Assets1} <Median[i]=col(i)>;
-  /* Declare Variables */
-  var Proportion{Assets1} >= 0 init 0;
-
-  /* Declare Objective Function */
-  min Risk = sum{i in Assets1}
-    (sum{j in Assets1}Proportion[i]*Covariance[i,j]*Proportion[j]);
-  
-  /* Declare Constraints */
-  con Return: 0.0005 <= sum{i in Assets1}Proportion[i]*Median[i];
-  con Sum: 1 = sum{i in Assets1}Proportion[i];
-
-  /* Call the Solver */
-  solve;
-
-  /* Print Solutions */
-  print Covariance Median;
-  print Proportion;
-
-  /* Output Results */
-  create data Weight_G from [Assets1] Proportion;
-
-quit;
 
 
 
@@ -190,11 +155,11 @@ quit;
   end;
 
    /*Store the portfolio return and std.dev from all runs in a SAS dataset*/
-   create data obj_value_stddev_results from 
+   create data fin.obj_value_stddev_results from 
          [parameter_values] Portfolio_Stdev_Results Expected_Return_Results;
 
    /*Store the weights from all runs in a SAS dataset*/ 
-   create data min_stddev_weight_results from 
+   create data fin.min_stddev_weight_results from 
          [_param_ _stock_]={parameter_values , stock_symbols} Weights_Results;
 quit;
 
@@ -204,3 +169,10 @@ quit;
 proc sgplot data=Obj_value_stddev_results;
 series x=Portfolio_Stdev_Results y=expected_return_results;
 quit;
+
+/* calculating average proportion for each stock over the 5 day period*/
+proc means data=min_stddev_weight_results mean;
+class _stock_;
+var weights_results;
+output out=fin.proportions mean=;
+run;
