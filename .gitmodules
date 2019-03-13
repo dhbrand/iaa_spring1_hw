@@ -1,0 +1,3 @@
+[submodule "big_data/IAA_Sessions"]
+	path = big_data/IAA_Sessions
+	url = https://github.com/zaratsian/IAA_Sessions.git
